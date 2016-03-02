@@ -1,0 +1,38 @@
+#mkdir /home/ubuntu/phase1 store q1.java and web.xml
+
+#following steps are for installing java and tomcat
+sudo apt-get update
+sudo apt-get install tomcat7 tomcat7-docs tomcat7-admin tomcat7-examples
+sudo apt-get install default-jdk
+
+#following steps are for bind port 80 instead of using default port 8080
+#vim to /etc/default/tomcat7, uncomment and change AUTHBIND=yes, TOMCAT7_USER=root, TOMCAT7_GROUP=root
+#if not in ubuntu, vim to /var/lib/tomcat7/conf/server.xml and change port to 80 
+#if in ubuntu
+sudo /sbin/iptables -t nat -I PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8080
+#not sure if need to include these
+#sudo apt-get authbind
+#sudo touch /etc/authbind/byport/80
+#sudo chmod 500 /etc/authbind/byport/80
+#sudo chown tomcat7 /etc/authbind/byport/80
+
+#following steps are for compile java program
+cd /var/lib/tomcat7/webapps/
+cd ROOT
+sudo rm index.html
+sudo mkdir WEB-INF
+cd WEB-INF
+sudo mkdir classes
+cd /var/lib/tomcat7/webapps/ROOT/
+sudo mkdir src
+cd /var/lib/tomcat7/webapps/
+sudo chmod -R 777 ROOT
+#copy web.xml to /phase1/WEB-INF/
+#copy q1.java to /phase1/src/
+cp /home/ubuntu/phase1/web.xml /var/lib/tomcat7/webapps/ROOT/WEB-INF/web.xml
+cp /home/ubuntu/phase1/q1.java /var/lib/tomcat7/webapps/ROOT/src/q1.java
+cd /var/lib/tomcat7/webapps/ROOT/src/
+export CLASSPATH=/usr/share/tomcat7/lib/servlet-api.jar
+javac -d /var/lib/tomcat7/webapps/ROOT/WEB-INF/classes/ q1.java
+sudo service tomcat7 restart #alternatively using sudo /etc/init.d/tomcat7 start
+

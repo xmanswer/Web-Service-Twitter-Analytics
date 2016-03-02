@@ -1,0 +1,9 @@
+cd /home/hadoop
+wget https://bintray.com/artifact/download/vertx/downloads/vert.x-2.1.5.tar.gz
+sudo tar zxvf vert.x-2.1.5.tar.gz
+sudo chmod -R 777 vert.x-2.1.5
+cd /home/hadoop/vert.x-2.1.5/bin
+wget https://s3.amazonaws.com/phase1elt/BoostrapHBaseVertx/vertx
+wget https://s3.amazonaws.com/phase1elt/BoostrapHBaseVertx/TalkToHBase.java
+wget https://s3.amazonaws.com/phase1elt/BoostrapHBaseVertx/FrontEndHBase.java
+export HBASE_HEAPSIZE=6000

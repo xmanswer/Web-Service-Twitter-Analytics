@@ -1,0 +1,96 @@
+#this instruction shows starting from a hbase EMR master machine
+#how to partition disk and download data to a folder
+#how to load data using bulk loading into hbase, get data from it with key
+#how to configure, compile and run a java program which talks to hbase
+#how to backup hbase data to s3
+
+#boostrap action when creating emr cluster for hbase
+custom 1
+s3://us-east-1.elasticmapreduce/bootstrap-actions/configure-hbase-daemons
+--hbase-master-opts=-Xms6g --hbase-master-opts=-Xmx6g --hbase-regionserver-opts=-Xms6g --hbase-regionserver-opts=-Xmx6g
+custom 2
+s3://us-east-1.elasticmapreduce/bootstrap-actions/configure-hbase
+--site-config-file s3://phase1elt/hbase-site.xml
+
+
+#config aws and s3
+sudo pip install awscli
+aws configure
+## AWSAccessKeyId=AKIAJWVJUGINPZKLNC5A
+## AWSSecretKey=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
+## default region = us-east-1
+## default format = text
+# copy subsample
+
+sudo pip install s3cmd
+s3cmd --configure
+# configure s3cmd
+## Access Key: AKIAJWVJUGINPZKLNC5A
+## Secret Key: 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
+## Encryption password: hmm
+## Path to GPG program [/usr/bin/gpg]: /usr/bin/gpg
+## Use HTTPS protocol [No]: False
+## HTTP Proxy server name:
+## Test access with supplied credentials? [Y/n] y
+## Save settings? [y/N] y
+
+#folder for storing the data
+mkdir q4data
+#mount device to the folder, xvdb can also be xvdc
+sudo mount /dev/xvdb /home/hadoop/q2data/
+cd /home/hadoop/q2data/
+
+#download data using s3 commands (recommended)
+s3cmd get s3://phase1elt/output_q2/part*
+
+#alternatively using python script 
+#cp download.py to the folder
+#use download.py to download all s3 data, need to modify download.py for file index and s3 address
+#note that python script uses hadoop fs -copyToLocal s3://yourbucket/yourfile as the download command
+python download.py
+
+hadoop fs -mkdir /q2data
+hadoop fs -put part* /q2data
+
+#if use pre split
+hbase org.apache.hadoop.hbase.util.RegionSplitter q2 HexStringSplit -c 6 -f data
+
+#enter hbase shell
+hbase shell
+create 'q2', {NAME => 'data'}
+exit
+#leave hbase shell
+
+#bulk import using importtsv, separator is tab, colume family is data, colume qualifier is response
+#this create HFiles at output output1
+hbase org.apache.hadoop.hbase.mapreduce.ImportTsv -Dimporttsv.bulk.output=output2 -Dimporttsv.columns=HBASE_ROW_KEY,data:response q2 /q2data
+#completebulkload to load HFile output1 to tweetdata
+hbase org.apache.hadoop.hbase.mapreduce.LoadIncrementalHFiles output2 q2
+
+#for q3
+hbase org.apache.hadoop.hbase.mapreduce.ImportTsv -Dimporttsv.bulk.output=output3 -Dimporttsv.columns=HBASE_ROW_KEY,data:positive,data:negative, q3 /q3data
+
+
+#hbase shell get key '10000572+2014-05-15 11:30:09' from tweet data
+hbase shell
+get 'q2', '10000572+2014-05-15 11:30:09'
+exit
+
+#suppress hbase output, does not really change a lot and does not really matter
+#vim /home/hadoop/hbase/conf/log4j.properties
+#change log4j.threshold=WARN
+
+#configure classpath and compile java files
+export CLASSPATH=/home/hadoop/lib/lib/*:/home/hadoop/hbase/*:/home/hadoop/phase1/
+javac -classpath $CLASSPATH *.java
+#run program
+java -cp $CLASSPATH q2Test
+
+#backup hbase before terminating emr, j-2M5Y8AT67BVWL should be correct emr cluster id, phase1elt is bucket name
+aws emr create-hbase-backup --cluster-id j-2M5Y8AT67BVWL --dir s3://phase1elt/backups/hbasephase1final
+
+#change block size (decrease for read intensive)
+disable 'tweetdata'
+alter 'tweetdata', {NAME => 'data', BLOCKSIZE => '4096'}
+#alter 'tweetdata', {NAME => 'data', IN_MEMORY => 'true'}
+enable 'tweetdata'

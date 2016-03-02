@@ -1,0 +1,4 @@
+#!/bin/bash
+export HBASE_ZOOKEEPER_OPTS=-Xmx512m
+export HBASE_MASTER_OPTS=-Xmx512m
+export HBASE_REGIONSERVER_OPTS=-Xmx5120m

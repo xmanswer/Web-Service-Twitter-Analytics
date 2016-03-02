@@ -1,0 +1,11 @@
+#this instruction shows starting from a single Linux machine
+#how to configure vertx server
+
+sudo apt-get update
+wget https://bintray.com/artifact/download/vertx/downloads/vert.x-2.1.5.tar.gz
+sudo apt-get install default-jdk
+sudo tar zxvf vert.x-2.1.5.tar.gz
+sudo chmod -R 777 vert.x-2.1.5
+#cp java files to vert.x-2.1.5/bin
+cd vert.x-2.1.5/bin
+sudo ./vertx run q1.java #require sudo to listen to port 80

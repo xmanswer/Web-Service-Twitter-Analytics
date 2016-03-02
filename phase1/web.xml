@@ -1,0 +1,10 @@
+<web-app>
+        <servlet>
+                <servlet-name>q1</servlet-name>
+                <servlet-class>net.codejava.q1</servlet-class>
+        </servlet>
+        <servlet-mapping>
+                <servlet-name>q1</servlet-name>
+                <url-pattern>/</url-pattern>
+        </servlet-mapping>
+</web-app>

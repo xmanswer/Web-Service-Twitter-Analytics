@@ -1,0 +1,19 @@
+#this instruction shows starting from a hbase EMR master machine
+#how to configure and deploy vertx server with connection to hbase
+
+#configure on hbase EMR instances, no need to install java
+#cp java files to vert.x-2.1.5/bin
+wget https://bintray.com/artifact/download/vertx/downloads/vert.x-2.1.5.tar.gz
+sudo tar zxvf vert.x-2.1.5.tar.gz
+sudo chmod -R 777 vert.x-2.1.5
+cd vert.x-2.1.5/bin
+
+vim vertx
+#vim to vertx, configure classpath for java complie, add jar for hadoop and hbase
+#CLASSPATH=${CLASSPATH}:${VERTX_HOME}/conf:${VERTX_HOME}/lib/*:/home/hadoop/lib/lib/*:/home/hadoop/hbase/*:/home/hadoop/vert.x-2.1.5/bin
+#configure java heap size and vertx worker size, no improvement for now, ignore for now
+#JVM_OPTS="-Xms2g -Xmx2g"
+#VERTX_OPTS="$VERTX_OPTS -Dvertx.mods=$VERTX_MODS -Dvertx.pool.worker.size=600"
+
+#run server, require sudo to listen to port 80
+sudo ./vertx run FrontEndHBase.java -instances 50
